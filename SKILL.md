@@ -7,7 +7,8 @@ description: >
   when the user explicitly asks ("do this thoroughly", "be systematic",
   "deep work mode") OR when the task objectively spans multiple
   files, multiple sources, or multiple sessions. Do NOT trigger on ordinary
-  multi-step requests that a direct attempt handles fine.
+  multi-step requests that a direct attempt handles fine. For a run pinned to a
+  specific model, use fable-sonnet or fable-haiku instead.
 ---
 
 # Fable Mode
@@ -64,6 +65,10 @@ Good delegation: "research X while I do Y", "process these 3 files", "verify thi
 independently". Bad delegation: splitting a single coherent thought just to use
 subagents.
 
+Keep delegation one level deep by default: a spawned subagent runs its stages
+sequentially rather than spawning its own subagents. Nesting multiplies cost and scatters
+context — allow a second level only when a sub-part clearly needs its own fan-out.
+
 **3. Verify with a check that can fail**
 Each stage must define a pass condition that an external artifact satisfies. Acceptable
 checks:
@@ -82,9 +87,17 @@ If a fix at stage N invalidates a prior stage's output, re-run that stage's chec
 continuing. The loop goes forward and backward.
 
 **4. Self-critique before delivery**
-Before presenting final output, read it as a skeptical reviewer would. Name at least one
-weakness or limitation. Either fix it or flag it to the user. Step 3 is the check that
-can fail. Step 4 is the judgment call about what remains weak after the check passes.
+Before presenting final output, read it as a skeptical reviewer would. Hunt for a real
+weakness or limitation; if one exists, fix it or flag it to the user. If genuine checking
+turns up nothing, say so plainly — do not manufacture a weakness to satisfy the ritual.
+Step 3 is the check that can fail. Step 4 is the judgment call about what remains weak
+after the check passes.
+
+Before flagging any problem — verify it actually exists. Grep, diff, run it, or check
+the source directly. Never report a problem that hasn't been confirmed present. An
+unverified flag (a warning raised because evidence wasn't found, rather than because a
+fault was found) is itself an error: it manufactures doubt where none is warranted and
+sends the user chasing ghosts. Absence of evidence is not the finding. Confirm, then flag.
 
 ---
 
@@ -116,6 +129,22 @@ work.
 - At the start of any continuation, re-read the work log before doing anything
 - Define done criteria upfront so you know when to stop
 - Failable check: done criteria are written and testable, not vibes
+
+---
+
+## Operational rules
+
+**Warning threshold.** Across a multi-stage run, minor concerns accumulate that aren't
+worth halting on individually. Keep a running count. At three accumulated warnings, stop
+and surface all of them to the user at once before continuing. Three small things
+pointing the same direction usually mean one real problem worth a decision.
+
+**Find-and-replace safety.** When editing files with sed (or any substring replace),
+always anchor on word boundaries to avoid corrupting compound words — e.g. replacing a
+bare `edge` will also mangle `Ledger` into garbage. Use `\bword\b`, not bare `word`.
+After any sed pass on a file, grep for glued or malformed compound words before
+presenting the result. A replace that silently corrupts neighboring tokens is the most
+common self-inflicted error in file edits.
 
 ---
 
