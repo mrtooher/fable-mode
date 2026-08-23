@@ -40,7 +40,8 @@ Runs on Anthropic infrastructure, survives container reclamation, needs no
 hardware.
 
 - **Trigger:** `trig_011DS6YUfkzv2peQ9Af5c4j3` — "Whistlepot inbox gateway"
-- **Schedule:** hourly at :20 (`20 * * * *`)
+- **Schedule:** `20 0-2,16-23 * * *` — hourly at :20, but only during Jim's
+  waking hours (12pm–10pm US Eastern). 11 runs a day, not 24.
 - **Prompt:** [`gateway-prompt.md`](./gateway-prompt.md)
 
 ### Status: live (2026-08-23)
@@ -100,9 +101,18 @@ that sleeps reproduces the original failure exactly — it looks alive and isn't
 case an always-on host ever exists.
 
 Since hourly is the floor, timing is worth knowing: the Routine fires at **:20
-past each hour**. A message sent at :15 gets answered in ~5 minutes; one sent
-at :25 waits ~55. Move the cron minute to suit whenever the traffic actually
-lands.
+past the hour, 12pm–10pm Eastern**. A message sent at :15 gets answered in ~5
+minutes; one sent at :25 waits ~55; one sent overnight waits until 12:20pm.
+That is deliberate — Jim sleeps, and 24 runs a day of open-ended usage was not
+worth paying for.
+
+### ⚠️ DST caveat
+
+**Cron is UTC and does not follow daylight saving.** `0-2,16-23` maps to
+12pm–10pm during EDT (UTC−4). When Eastern falls back to EST (UTC−5) in
+November, the same expression fires 11am–9pm local — an hour early at both
+ends. Fix by shifting each hour up one: `20 1-3,17-23,0 * * *`, or more simply
+`20 17-23,0-3 * * *`. Reverse it again in March.
 
 For chat-speed replies, run the same prompt on a short interval from a machine
 that stays on, invoking the `claude` CLI with the Inkbox MCP server configured.
