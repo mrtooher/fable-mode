@@ -54,10 +54,16 @@ reply.
 To activate it, attach the **Inkbox** connector to the Routine from the
 claude.ai Routines UI. That step can only be done by the account owner.
 
-### Limitation
+### Limitations
 
 One hour is the minimum cron interval (`*/15` is rejected). That is fine for
 email but poor for a text conversation.
+
+Tool scoping is **prompt-level only**. Fired sessions inherit a broad default
+toolset (`Bash`, `Write`, `WebSearch`, …) and `update_trigger` cannot change a
+Routine's allowed tools — only its name, schedule, model, and prompt. The
+prompt therefore opens with a hard instruction to use nothing but `inkbox_*`
+tools. That is an instruction, not a sandbox; treat it accordingly.
 
 ## Path B — local daemon (near-real-time)
 
@@ -73,6 +79,18 @@ Design notes for whoever builds this:
   over blanket permission bypass, and note that the MCP server prefix changes
   between sessions, so match on `inkbox_*` rather than a fixed prefix.
 - Schedule with `launchd` (`StartInterval`) on macOS, or a systemd timer.
+
+## Recommended sequence
+
+1. **Activate Path A first.** It is one UI step from working, needs no
+   hardware, and gives a guaranteed floor: nothing is ever silently dropped,
+   worst case an hour late.
+2. **Live with hourly for a few days.** It is genuinely fine for email. Find out
+   whether the lag actually bites on iMessage before building for it.
+3. **Add Path B only if hourly proves too slow** *and* there is a machine that
+   truly stays awake. A daemon on a laptop that sleeps is worse than no daemon —
+   it looks alive and isn't, which is the exact failure mode this whole
+   directory exists to fix.
 
 ## The iMessage watermark gotcha
 
