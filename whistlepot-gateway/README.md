@@ -92,7 +92,17 @@ Routine's allowed tools — only its name, schedule, model, and prompt. The
 prompt therefore opens with a hard instruction to use nothing but `inkbox_*`
 tools. That is an instruction, not a sandbox; treat it accordingly.
 
-## Path B — local daemon (near-real-time)
+## Path B — local daemon (near-real-time) — DECLINED
+
+**Not viable here: Jim has no computer that stays on.** A daemon on a machine
+that sleeps reproduces the original failure exactly — it looks alive and isn't
+— so hourly Path A is the setup, full stop. The design below is kept only in
+case an always-on host ever exists.
+
+Since hourly is the floor, timing is worth knowing: the Routine fires at **:20
+past each hour**. A message sent at :15 gets answered in ~5 minutes; one sent
+at :25 waits ~55. Move the cron minute to suit whenever the traffic actually
+lands.
 
 For chat-speed replies, run the same prompt on a short interval from a machine
 that stays on, invoking the `claude` CLI with the Inkbox MCP server configured.
