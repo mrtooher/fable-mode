@@ -43,16 +43,43 @@ hardware.
 - **Schedule:** hourly at :20 (`20 * * * *`)
 - **Prompt:** [`gateway-prompt.md`](./gateway-prompt.md)
 
-### ⚠️ Required manual step
+### Status: live (2026-08-23)
 
-The Routine is **created but inert**. Routines created through the MCP tool
-store no connectors — the `connectors` parameter is rejected for this
-organization — so the sessions it fires start with **no Inkbox tools** and can
-do nothing. A test fire on 2026-08-23 confirmed this: it ran and produced no
-reply.
+Verified end to end. Jim sent two iMessages — "Did I flip it?" (12:19) and
+"Working?" (12:35) — and a gateway run answered both with a single reply at
+12:37:56, with no human in the loop:
 
-To activate it, attach the **Inkbox** connector to the Routine from the
-claude.ai Routines UI. That step can only be done by the account owner.
+> Yep, it's working now — this came in on its own, nobody had to poke me.
+> Switch is flipped.
+
+That run also exercised the watermark rule correctly: two inbound messages
+newer than the last outbound, gathered into **one** request, answered **once**.
+
+### Activation — the step that gates a new Routine
+
+A Routine created through the MCP tool stores **no connectors**; the
+`connectors` parameter is rejected outright for this organization
+(*"not available for this organization"*). Sessions it fires therefore start
+with no Inkbox tools and silently do nothing — a test fire on 2026-08-23 ran
+and produced no reply at all.
+
+The fix is manual and only the account owner can do it: attach the **Inkbox**
+connector to the Routine from the claude.ai Routines UI. Once attached it is
+stored on the Routine and visible via `list_triggers`:
+
+```json
+"mcp_connections": [
+  {"connector_uuid": "…", "name": "Inkbox", "url": "https://inkbox.ai/mcp/anthropic"}
+]
+```
+
+If you rebuild this Routine from scratch, expect to do that step again.
+
+**Diagnosing this is harder than it looks.** With an empty inbox a correct run
+and a toolless run are both silent — indistinguishable. To tell them apart you
+need an unanswered inbound message sitting in the queue as a stimulus, then
+fire the Routine and watch for a reply. Absence of a reply only means something
+when there was something to reply to.
 
 ### Limitations
 
@@ -82,9 +109,9 @@ Design notes for whoever builds this:
 
 ## Recommended sequence
 
-1. **Activate Path A first.** It is one UI step from working, needs no
-   hardware, and gives a guaranteed floor: nothing is ever silently dropped,
-   worst case an hour late.
+1. ~~**Activate Path A first.**~~ **Done 2026-08-23** — connector attached,
+   verified answering autonomously. Gives a guaranteed floor: nothing is ever
+   silently dropped, worst case an hour late.
 2. **Live with hourly for a few days.** It is genuinely fine for email. Find out
    whether the lag actually bites on iMessage before building for it.
 3. **Add Path B only if hourly proves too slow** *and* there is a machine that
