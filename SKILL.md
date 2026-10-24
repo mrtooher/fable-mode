@@ -5,7 +5,7 @@ description: "Enforces staged execution discipline on large tasks: a written sta
 
 # Fable Mode
 
-Family version: v6 (2026-10-10).
+Family version: v6.1 (2026-10-24): adds the error-first judgment check to step 3.
 
 This skill encodes execution discipline for complex work: decompose before acting,
 delegate where the runtime allows, verify with checks that can fail, self-critique
@@ -148,6 +148,36 @@ checks:
 will also pass its own introspection. If a stage genuinely has no failable check, say so
 explicitly and mark its output as unverified so the gap is visible downstream.
 
+**Judgment calls (prose with no answer key).** A recommendation, analysis, decision or
+write-up has no test to run. Before marking such a stage unverified, run the error-first
+check below. It turns part of the judgment into a check that can fail.
+
+1. **Errors first.** Before any overall verdict, list every factual or logical error
+   visible on the page, one per line, quoting the sentence it sits in. If there are none,
+   write "none found". Each of these counts as an error:
+   - an overstated claim: "proves", "always", "decisive", "guaranteed" where the support
+     only backs a weaker word such as "suggests"
+   - advice or a conclusion that contradicts a fact the spec or the user stated
+   - a step in the reasoning that does not follow
+   Omissions do not count here. Coverage is checked against the spec separately.
+2. **The verdict is capped by the list.** A material error, meaning one that would change
+   what the reader does or believes, is a FAIL: fix it and re-run the check. A minor
+   error gets fixed or logged as an open item. A stage cannot be called clean while
+   anything on the list is outstanding.
+3. **Dissent check** (only when the deliverable recommends something): it must state the
+   strongest case against its own recommendation, and state it fairly. If that case is
+   missing or a strawman, the check FAILs.
+4. **Ignore length.** A longer answer is not a better one, and padding is not evidence.
+
+Who runs it: when spawning is authorized, a fresh Sonnet verifier briefed with the spec
+and the artifact only (step 4 rules). Otherwise, run it inline and label it a
+self-check. Either way, a clean list rules out the listed failure types and nothing more.
+Whatever the list cannot settle, such as taste, strategy, or whether the recommendation
+is the right call, stays labeled as judgment, not verified.
+
+Adapted from the error-first judge prompt in Ali Assem's wise-men-flash (MIT license):
+github.com/Ali-expandings/wise-men-flash
+
 The cost of catching an error at stage 3 is trivial; at stage 8 it is catastrophic.
 
 If a fix at stage N invalidates a prior stage's output, re-run that stage's check before
@@ -164,8 +194,9 @@ For high-stakes deliverables, where the runtime supports subagents and spawning 
 authorized, spawn a fresh verifier agent briefed only with the spec and the artifact —
 not your reasoning — and have it run the checks cold. Fresh eyes cannot inherit your
 blind spots. A Haiku or Sonnet verifier is usually enough; the checks are mechanical by
-design. Wait for its verdict before step 5, and emit `FINAL-COLD-CHECK: yes` only if it
-returned and checked the version you deliver.
+design. For a judgment-call deliverable, use Sonnet and brief it with step 3's
+error-first check. Wait for its verdict before step 5, and emit `FINAL-COLD-CHECK: yes`
+only if it returned and checked the version you deliver.
 
 Verify-before-flag and warning batching rules for this step live in the
 execution-guardrails skill and are mandatory.
@@ -218,6 +249,8 @@ named artifact is a step-3 violation.
   in this run — URL or document named. A claim resting on training memory alone must be
   labeled as such. Absence of a web result is never itself a finding (see
   execution-guardrails and source-of-truth).
+- Failable check for the synthesis itself (conclusions, recommendations): step 3's
+  error-first judgment check, with the list shown.
 
 ### Data analysis
 - Understand the data shape before writing any analysis: row count, column list, and

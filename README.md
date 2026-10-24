@@ -1,6 +1,7 @@
 # fable-mode
 
-> **Current: v6 (2026-10-10).** Live skills: `fable-mode` (root `SKILL.md`),
+> **Current: v6.1 (2026-10-24)** — adds an error-first judgment check and a dissent
+> check to step 3 for prose with no answer key (see `bench/judgment/`). Live skills: `fable-mode` (root `SKILL.md`),
 > `fable-opus`, `fable-sonnet`, `double-check`, `execution-guardrails`. Ladder: Haiku →
 > Sonnet → Opus → the user. `fable-fable`, `fable-haiku` and the v3 `agents/` routing
 > are retired — see [SUPERSEDED.md](SUPERSEDED.md). Sections below that describe them
@@ -81,6 +82,7 @@ by meeting notes, a real federal data file to fetch or fabricate).
 | Fable 5.1 | **0 delta** — 100/100 in all 16 paired runs (n=2/cell, 4 tasks incl. open-ended real-data fetch); ~1.1× tokens, ~2× wall | `BENCHMARK-2026-09-02.md` |
 | Opus / Sonnet | 0 delta on closed graded tasks; **real** on open-ended research — Opus+skill fetched and parsed the NIAAA state dataset, Opus baseline shipped synthetic trend lines | July 2026 rounds |
 | Haiku | real but noisy: +25 / −17 across rounds; raises the floor on mechanical diligence, cannot supply synthesis | July 2026 rounds |
+| v6.1 judgment check (checker only) | Sonnet checkers: tie, 24/24 both arms. Haiku checkers on subtler errors: 30/30 vs 28/30 — both misses a strawman "case against". Small sample. | `bench/judgment/` |
 
 Read: the loop's value **inverts with model strength**. On Fable 5.1 it buys provenance.
 On Opus it buys real sources over plausible ones. On Haiku it buys verification the
