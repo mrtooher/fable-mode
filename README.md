@@ -124,6 +124,7 @@ double-check/               delivery gate
 agents/                     orchestrator, sonnet worker, haiku worker, verifier
 bench/                      fixtures generator, graders, prompts, results.json
 BENCHMARK-2026-09-02.md     Fable 5.1 results
+FIELD-NOTE-2026-11-15.md    one real session with Pro: what the checks caught, what it cost (not a benchmark)
 EXAMPLE.md                  worked before/after: the failable check catching a bug
 V3-CHANGES.md               why delegation became structural
 install.sh                  Claude Code installer
