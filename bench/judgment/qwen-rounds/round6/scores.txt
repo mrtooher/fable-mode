@@ -1,0 +1,8 @@
+6|M7|D|7a:no 7b:YES(item6)|tools:2
+7|M7|C|7a:YES(item5) 7b:YES(item4)|tools:2
+2|M7|D|7a:YES(item3) 7b:no|tools:2
+4|M7|C|7a:YES(item3) 7b:YES(item6)|tools:2
+8|M3|D|3:YES(salary double-count)|tools:2|verdict PASS w/ open item
+3|M3|C|3:no|tools:2|verdict PASS
+1|M3|C|3:YES(salary double-count)|tools:2
+5|M3|D|3:YES|tools:2

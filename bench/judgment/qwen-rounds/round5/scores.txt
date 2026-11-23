@@ -1,0 +1,12 @@
+13|M7|C|7a:no 7b:no|false:none-new
+3|M7|D|7a:no 7b:no|new self-contradictions: not-a-crisis vs credibility; exclusion rule vs let-manager-decide; send step no branch
+15|M7|D|7a:no 7b:no|new: complete-note vs no-implication rule; send step no branch; irreversible closure vs reversible follow-ons
+5|M7|C|7a:no 7b:no|new: recommendation content list vs what-to-do list
+16|M3|C|3:no|new: that-is-why non sequitur; renewals vs cant-test; 3 coverage bars; cheap-reversible vs risks
+10|M8|C|n/a|draft order vs rec; criteria line unconditional (no false key flag). STRAY TOOL CALL (scheduling, failed)
+14|M5|D|5:YES (commit order)|new: low-cost vs expensive; hardening vs build-anyway
+7|M5|C|5:no|STRAY TOOL CALL (get_device_info)
+12|M8|D|8key(admission-in-writing vs error-was-mine):YES|also draft order
+2|M3|D|3:no|new: 3 coverage bars; cheap-reversible vs exclusivity; that-is-why non sequitur
+11|M8|C|8key:no|draft order
+6|M3|C|3:no|STRAY TOOL CALL (get_device_info)

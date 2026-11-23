@@ -1,0 +1,82 @@
+[
+ {
+  "checker": 1,
+  "memo": 8,
+  "rules": "D"
+ },
+ {
+  "checker": 2,
+  "memo": 3,
+  "rules": "D"
+ },
+ {
+  "checker": 3,
+  "memo": 7,
+  "rules": "D"
+ },
+ {
+  "checker": 4,
+  "memo": 5,
+  "rules": "C"
+ },
+ {
+  "checker": 5,
+  "memo": 7,
+  "rules": "C"
+ },
+ {
+  "checker": 6,
+  "memo": 3,
+  "rules": "C"
+ },
+ {
+  "checker": 7,
+  "memo": 5,
+  "rules": "C"
+ },
+ {
+  "checker": 8,
+  "memo": 5,
+  "rules": "D"
+ },
+ {
+  "checker": 9,
+  "memo": 3,
+  "rules": "D"
+ },
+ {
+  "checker": 10,
+  "memo": 8,
+  "rules": "C"
+ },
+ {
+  "checker": 11,
+  "memo": 8,
+  "rules": "C"
+ },
+ {
+  "checker": 12,
+  "memo": 8,
+  "rules": "D"
+ },
+ {
+  "checker": 13,
+  "memo": 7,
+  "rules": "C"
+ },
+ {
+  "checker": 14,
+  "memo": 5,
+  "rules": "D"
+ },
+ {
+  "checker": 15,
+  "memo": 7,
+  "rules": "D"
+ },
+ {
+  "checker": 16,
+  "memo": 3,
+  "rules": "C"
+ }
+]

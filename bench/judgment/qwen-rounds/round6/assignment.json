@@ -1,0 +1,42 @@
+[
+ {
+  "checker": 1,
+  "memo": 3,
+  "rules": "C"
+ },
+ {
+  "checker": 2,
+  "memo": 7,
+  "rules": "D"
+ },
+ {
+  "checker": 3,
+  "memo": 3,
+  "rules": "C"
+ },
+ {
+  "checker": 4,
+  "memo": 7,
+  "rules": "C"
+ },
+ {
+  "checker": 5,
+  "memo": 3,
+  "rules": "D"
+ },
+ {
+  "checker": 6,
+  "memo": 7,
+  "rules": "D"
+ },
+ {
+  "checker": 7,
+  "memo": 7,
+  "rules": "C"
+ },
+ {
+  "checker": 8,
+  "memo": 3,
+  "rules": "D"
+ }
+]
