@@ -1,11 +1,16 @@
 # fable-mode
 
-> **Current: v6.1 (2026-10-24)** — adds an error-first judgment check and a dissent
-> check to step 3 for prose with no answer key (see `bench/judgment/`). Live skills: `fable-mode` (root `SKILL.md`),
-> `fable-opus`, `fable-sonnet`, `double-check`, `execution-guardrails`. Ladder: Haiku →
-> Sonnet → Opus → the user. `fable-fable`, `fable-haiku` and the v3 `agents/` routing
-> are retired — see [SUPERSEDED.md](SUPERSEDED.md). Sections below that describe them
-> are kept as history.
+> **Current: v6.6 (2026-11-22).** Spawned workers, verifiers and checkers are Sonnet or
+> Opus, never Haiku. In the [Qwen-graded bench](bench/judgment/qwen-rounds/README.md),
+> Haiku checkers ignored a Read-only brief in about 6 of 32 runs, and missed
+> self-contradictions that Sonnet caught 9 of 12 times. v6.5 lists claims the spec
+> doesn't cover as UNVERIFIABLE instead of counting them as errors. v6.2–v6.4 added
+> step 0 (lock decisions), a Games domain, project landmines, and a rule never to route
+> work above Opus. The Games recipes cite `fable-checks-games`, which is not in this
+> repo. Live skills: `fable-mode` (root `SKILL.md`), `fable-opus`, `fable-sonnet`,
+> `double-check`, `execution-guardrails`. `fable-fable`, `fable-haiku` and the v3
+> `agents/` routing are retired; see [SUPERSEDED.md](SUPERSEDED.md). Sections below that
+> describe them are kept as history.
 
 Execution discipline for Claude on large tasks: a written stage map, delegation to
 named agents where the runtime allows, a verification check at every stage that can

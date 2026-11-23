@@ -1,11 +1,19 @@
 ---
-name: fable-sonnet
+name: "fable-sonnet"
 description: "Run fable-mode execution discipline on Claude Sonnet. When invoked by slash command or by name, spawns a Sonnet subagent that follows the staged loop — stage plan, parallel delegation, a failable verification check at each stage, and a skeptical self-review before delivery; a wording-only request runs the loop inline on the current model. Trigger when the user explicitly asks for thorough/systematic/\"deep work\" handling on Sonnet."
 ---
 
 # Fable Mode — Sonnet
 
-Family version: v6 (2026-10-10).
+Family version: v6.6 (2026-11-22): verifiers are Sonnet, never Haiku (Haiku checkers
+ignored Read-only briefs in about 6 of 32 bench runs; Sonnet in 0 of 8).
+v6.5 (2026-11-22): in the error-first check, a claim the spec does not
+cover is UNVERIFIABLE, not an error, unless it contradicts the spec or the deliverable.
+v6.4 (2026-11-10): the worker loop gains the error-first judgment
+check and the current-state lookup rule, and the parent never assumes an irreversible
+choice. v6.3 (2026-11-04): the worker loop now carries fable-mode v6.2+'s
+Decision lines, stage-size rule, reproduce-before-fix, Games domain and project
+landmines. v6 (2026-10-10) was the previous version.
 
 Run the fable-mode discipline on Claude Sonnet via a subagent (Agent tool permitting).
 The skill shapes the *procedure*; the model still sets the reasoning ceiling. Sonnet
@@ -41,9 +49,17 @@ fable-mode — when the user reports usage at their threshold, check in first.
 1. Confirm the runtime exposes the Agent tool and spawning is authorized (Invocation
    gate). If either fails, you cannot pin a model — say so and run the loop inline on
    the current model instead.
-2. Spawn an Agent with `model: "sonnet"` and `subagent_type: "general-purpose"`.
-3. Brief the agent with: the user's task, where to save outputs, relevant context from
-   this session, and everything from **Core Loop** onward as its operating instructions.
+2. First run fable-mode step 0 (lock decisions) on this thread: ask the user about open
+   choices that would change the build, or mark them `assumed` when nobody can answer.
+   Exception: a choice that can't be undone (deleting, sending, publishing, paying,
+   overwriting the only copy) and could reasonably go either way is never assumed. Do
+   the preparatory work, set out the choice with a recommended option, and stop until
+   the user answers.
+   If the project has a `LANDMINES.md`, read it. Then spawn an Agent with
+   `model: "sonnet"` and `subagent_type: "general-purpose"`.
+3. Brief the agent with: the user's task, the `Decision:` lines, the LANDMINES.md
+   entries (or "none"), where to save outputs, relevant context from this session, and
+   everything from **Core Loop** onward as its operating instructions.
    Inline the operational rules below in full — pass them verbatim, do not summarize
    them into a reference. Cloud subagents could load skills (2026-10-10); other
    surfaces are unchecked. The inline copy is shorter than a skill load and works
@@ -54,8 +70,7 @@ fable-mode — when the user reports usage at their threshold, check in first.
    the result and surface any stage it marked unverified.
 5. For high-stakes deliverables, if spawning is authorized, spawn a fresh verifier agent
    briefed only with the spec and the artifact — not the worker's reasoning — and have it
-   re-run the named checks cold. A Haiku verifier is usually enough; the checks are
-   mechanical by design. Wait for its verdict before step 6; the FINAL-COLD-CHECK line
+   re-run the named checks cold. Use a Sonnet verifier; never spawn Haiku for this. Wait for its verdict before step 6; the FINAL-COLD-CHECK line
    may say `yes` only if it checked the version you deliver.
 6. **Mandatory delivery gate — once, on this thread, never inside the worker:** before
    presenting the result to the user, invoke the **double-check** skill on the finished
@@ -82,11 +97,22 @@ stay controlled.
 
 ## Core Loop (pass this to the subagent)
 
+**0. Decisions are locked**
+The parent locked the open choices before briefing you. Copy its `Decision:` lines to
+the top of your stage map. A stage that contradicts a Decision line is a step-3 FAIL.
+If you hit a new open choice that would change the build, stop and return it to the
+parent for a user decision; do not guess.
+
 **1. Stage map (before touching anything)**
 Write the full stage plan first. Number stages; give each a brief expected output. Each
 stage produces one verifiable artifact; if a stage produces nothing checkable, merge it
 with the next. Update the map when new information invalidates a plan — it is a living
 document, not a contract.
+
+Stage size: each stage must be finishable from its brief, the files it names and the
+Decision lines alone. If it needs more, split it. Splitting doesn't count as a replan.
+If the briefing lists LANDMINES.md entries, add one line per entry under your final
+stage: `Landmine L<n>: <name> → <its check>`.
 
 Replan budget: at most two full replans per run. If a third structural replan seems
 necessary, stop — the task is ambiguous at the requirements level, not the execution
@@ -108,6 +134,21 @@ artifact is a violation. If a stage has no failable check, say so and mark the o
 unverified. If a fix at stage N invalidates a prior stage's output, re-run that stage's
 check before continuing.
 
+Judgment calls (a recommendation, analysis or write-up with no answer key): before
+marking such a stage unverified, run the error-first check. (a) Before any overall
+verdict, list every factual or logical error on the page, one per line, quoting the
+sentence it sits in, or write "none found". These count as errors: an overstated claim
+("proves", "always", "guaranteed" where the support only backs "suggests"), a conclusion
+that contradicts a fact the spec or the user stated, and a step that does not follow. A claim the spec does not cover is UNVERIFIABLE, not an
+error, unless it contradicts the spec or the deliverable's own facts; if the
+recommendation rests on it, log it as an open item.
+(b) The verdict is capped by the list: an error that would change what the reader does
+or believes is a FAIL; fix it and re-run. (c) If the deliverable recommends something,
+it must state the strongest case against its own recommendation, fairly; a missing or
+strawman case is a FAIL. (d) Length is not evidence. Label the result a self-check.
+What the list cannot settle (taste, strategy, whether the call is right) stays labeled
+judgment, not verified.
+
 **4. Self-critique before delivery**
 Read the final output as a skeptical reviewer. Hunt for a real weakness or limitation; if
 one exists, fix it or flag it. If genuine checking turns up nothing, say so plainly — do
@@ -123,10 +164,27 @@ Each is an instance of step 3 — the failable check that fits the work:
   opened; any file the diff touches that isn't on the list is a gap. Tests alongside
   implementation. Failable check: named test command runs and passes; at least one error
   path exercised with output shown. A suite never run does not count as passing.
+- **Bugs: reproduce before you fix.** The first stage builds a way to make the bug
+  happen on demand (failing test, script, log capture, or numbered repro steps) and runs
+  it once, showing the failure. No cause is guessed and no fix written before then.
+  Failable check: the repro fails before the fix and the same repro passes after it;
+  temporary `FABLE-TEMP` logging is gone (`git grep -n "FABLE-TEMP"` prints nothing). If
+  no repro can be built, stop and return what you tried.
+- **Games (Unity, Roblox):** ask the parent before running a command-line check on a
+  project the user may have open in the editor; never close the editor. Failable check:
+  the engine's own run (Unity batchmode tests or compile check; Roblox Lune tests,
+  offline map checks and the luau-lsp type check, compared with main's error count). A
+  feel or multiplayer change is checked by a playtest script; a step nobody played is
+  UNVERIFIABLE. Scene, prefab and place files change only if the stage map says so
+  (`git status --porcelain`).
 - **Research:** gather sources before synthesizing. Failable check: every load-bearing
   claim maps to a source actually fetched and read in this run — URL or document named.
   A claim resting on training memory alone must be labeled as such. Distinguish confirmed
-  facts from inferences explicitly.
+  facts from inferences explicitly. Anything that describes the world as it is now (who
+  holds a role, a price, a version, whether a rule is still in force) is looked up in
+  this run before it is stated, however familiar it feels; with no lookup tool, state
+  it with its date and label it unverified. Conclusions and recommendations get step 3's
+  judgment check, with the list shown.
 - **Data:** understand the data shape first — row count, column list, sample printed,
   not assumed. State the hypothesis before computing. Failable check: quality assertions
   (nulls, duplicate keys, out-of-range, row count vs. source) run with output shown; one
@@ -138,6 +196,9 @@ Each is an instance of step 3 — the failable check that fits the work:
 - **Long-running:** keep a work log; define done criteria upfront — written and
   testable, not vibes. Failable check: each continuation begins by confirming the log
   was re-read and naming any decision it changed.
+- **Project landmines:** in your final stage, re-run every LANDMINES.md check the
+  briefing listed against the finished work, with command and output shown. A landmine
+  FAIL blocks delivery like any other FAIL.
 
 ## Operational rules (pass these to the subagent verbatim)
 

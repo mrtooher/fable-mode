@@ -1,11 +1,20 @@
 ---
-name: double-check
+name: "double-check"
 description: "Automatic final verification pass on completed deliverables. Runs at the end of every fable-mode run — those skills invoke it before delivery. Also triggers when the user says \"double check this\". Uses a panel of fresh checker agents when spawning is authorized (otherwise a cold self-check) to verify the finished output — not to redo the task. Any FAIL gets fixed and re-checked before delivery."
 ---
 
 # Double Check
 
-Family version: v6 (2026-10-10).
+Family version: v6.6 (2026-11-22): no Haiku checkers. The mechanical checker is now
+Sonnet too (bench: about 6 of 32 Haiku checkers made tool calls their Read-only brief
+forbade; 0 of 8 Sonnet did).
+v6.5 (2026-11-22): the Sonnet checker lists claims the spec does not
+cover as UNVERIFIABLE, not as errors, unless they contradict the spec or the
+deliverable's own facts.
+v6.4 (2026-11-10): Decision lines count as requirements, the Sonnet
+checker runs errors-first on judgment deliverables, the seam check hunts stale
+current-state claims, and Opus is the checker ceiling. v6 (2026-10-10) was the
+previous version.
 
 Automatic verification pass on a *finished* deliverable. The user should never have to
 re-check work themselves — this skill is that re-check.
@@ -84,6 +93,9 @@ From the finished deliverable, build two numbered lists:
 - **Requirements** (R1, R2, ...): everything the user's original request demanded.
   Each phrased as a yes/no: "deliverable contains X", "file Y exists and opens",
   "all rows from source present".
+  When the run locked decisions (fable-mode step 0), each `Decision:` line is a
+  requirement too: the deliverable must not contradict it. Name every `assumed`
+  decision in the summary so the user can confirm it.
 
 For each item, name the exact check: the command, file, source, or comparison that
 settles it. An item with no nameable check is marked UNVERIFIABLE by you, up front,
@@ -99,14 +111,26 @@ output format. They never receive your reasoning, your confidence, or hints abou
 items you suspect.
 
 Tier routing — match the tier to the check, not to the importance of the deliverable:
-- **One Haiku checker (all mechanical checks in one bundle):** numbers re-added, files
-  opened and read back, links/paths exist, commands re-run, counts reconciled. Add a
-  second Haiku only when the mechanical checks will not fit one brief, and say why.
+- **One Sonnet mechanical checker (all mechanical checks in one bundle):** numbers
+  re-added, files opened and read back, links/paths exist, commands re-run, counts
+  reconciled. Add a second only when the mechanical checks will not fit one brief, and
+  say why. Never spawn Haiku as a checker.
 - **One Sonnet checker:** requirements coverage (every R satisfied by the artifact
   itself, not by the work log), internal consistency, logic of any argument the
-  deliverable makes.
+  deliverable makes. When the deliverable is a recommendation, analysis or other prose
+  with no answer key, this checker works errors-first: before any verdict it lists
+  every overstated claim ("proves", "always", "guaranteed" where the support only backs
+  "suggests"), every conclusion that contradicts a fact in the spec, and every step
+  that does not follow, each with the sentence quoted, or writes "none found". A claim the
+  spec does not cover is not on that list: it is UNVERIFIABLE unless it contradicts the
+  spec or the deliverable's own facts, and an open item if the recommendation rests on
+  it. A
+  recommendation with no fair statement of the strongest case against it is a FAIL.
+  Length is not evidence. Taste and strategy stay labeled judgment, not verified.
 - **Opus (only if needed):** when two checkers disagree on the same item, or a
-  REFUTED verdict is itself disputed after the fix. Adjudicates; does not re-check
+  REFUTED verdict is itself disputed after the fix. Opus is the ceiling: never spawn a checker or adjudicator above it, even when
+  the Agent tool offers a Fable-tier model; an item Opus cannot settle goes to the user
+  as UNVERIFIABLE. Adjudicates; does not re-check
   everything.
 
 **Collect every verdict.** Spawns may run in the background even when foreground is
@@ -183,6 +207,11 @@ intermediate outputs. Two seam-specific hunts:
 - **Proxy metrics read as the real thing:** a timestamp is not a version; a file size
   is not disk usage; a process existing is not a process running; a search returning
   nothing is not evidence of absence. Verify the actual quantity.
+- **Stale current-state claims:** anything the deliverable states about the world as it
+  is now (a price, a version, who holds a role, whether a rule is in force, what a named
+  product does today). The check is whether it was fetched in this run. If it rests on
+  training memory or an earlier session, look it up now or mark it UNVERIFIABLE with
+  its date.
 
 ### 5. Fix, then re-check
 
@@ -190,7 +219,7 @@ Any FAIL: fix the deliverable, then re-run **that specific check**. If the fix
 invalidates upstream content, fix and re-check that too.
 
 **One re-check round.** In panel mode, batch every fixed item into ONE fresh re-checker
-brief (Haiku, unless an item needs Sonnet's logic check). If anything fails that round,
+brief (Sonnet). If anything fails that round,
 fix it and verify it by cold self-check — re-derive from the artifact, no new spawn —
 and mark those items "self-checked" in the summary. No further spawn rounds. An Opus
 adjudicator for a disputed verdict (step 2) sits outside this cap — at most one per
@@ -206,7 +235,7 @@ Deliver with a short verification summary:
 ```
 Double-check: N claims + M requirements.
 PASS: n. FIXED after FAIL: n (list what was wrong, one line each). UNVERIFIABLE: n (named).
-Checkers: [e.g. 1× Haiku, 1× Sonnet, 1 re-check round | self-check — no Agent tool / spawning not authorized]
+Checkers: [e.g. 2× Sonnet, 1 re-check round | self-check — no Agent tool / spawning not authorized]
 ```
 
 Name what got refuted and fixed — that is the evidence the check was real. A summary
@@ -220,8 +249,6 @@ plainly too — own the specific error and move on, no extended apology.
 - Verify-before-flag applies: a checker's FAIL must cite the observed evidence, not
   the absence of confirmation. Absence of evidence is not a finding.
 - Checkers are READ-ONLY. Only the main session fixes things.
-- Budget: default panel is 1 Haiku + 1 Sonnet, plus at most one re-check round (cut
-  from 2–4 Haiku + 1 Sonnet on 2026-10-10, after a 2+1 panel cost ~580K subagent
-  tokens; coverage at 1+1 not yet measured). Escalate to Opus only on disagreement.
-  Match tier to the check, not to the importance of the deliverable — mechanical
-  checks stay cheap.
+- Budget: default panel is 2 Sonnet (one mechanical, one logic), plus at most one
+  re-check round. Escalate to Opus only on disagreement. Haiku was dropped on
+  2026-11-22 for ignoring Read-only briefs; keep mechanical briefs short instead.
