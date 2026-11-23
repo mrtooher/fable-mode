@@ -1,0 +1,135 @@
+{
+ "memos": [
+  {
+   "memo": 1,
+   "q": "R504",
+   "slot": "B",
+   "version": "old"
+  },
+  {
+   "memo": 2,
+   "q": "R502",
+   "slot": "A",
+   "version": "new"
+  },
+  {
+   "memo": 3,
+   "q": "R508",
+   "slot": "B",
+   "version": "new"
+  },
+  {
+   "memo": 4,
+   "q": "R508",
+   "slot": "A",
+   "version": "old"
+  },
+  {
+   "memo": 5,
+   "q": "R502",
+   "slot": "B",
+   "version": "old"
+  },
+  {
+   "memo": 6,
+   "q": "R504",
+   "slot": "A",
+   "version": "new"
+  },
+  {
+   "memo": 7,
+   "q": "R506",
+   "slot": "B",
+   "version": "old"
+  },
+  {
+   "memo": 8,
+   "q": "R506",
+   "slot": "A",
+   "version": "new"
+  }
+ ],
+ "checkers": [
+  {
+   "checker": 1,
+   "memo": 5,
+   "rules": "C"
+  },
+  {
+   "checker": 2,
+   "memo": 7,
+   "rules": "B"
+  },
+  {
+   "checker": 3,
+   "memo": 8,
+   "rules": "B"
+  },
+  {
+   "checker": 4,
+   "memo": 2,
+   "rules": "B"
+  },
+  {
+   "checker": 5,
+   "memo": 3,
+   "rules": "B"
+  },
+  {
+   "checker": 6,
+   "memo": 4,
+   "rules": "B"
+  },
+  {
+   "checker": 7,
+   "memo": 6,
+   "rules": "C"
+  },
+  {
+   "checker": 8,
+   "memo": 5,
+   "rules": "B"
+  },
+  {
+   "checker": 9,
+   "memo": 7,
+   "rules": "C"
+  },
+  {
+   "checker": 10,
+   "memo": 1,
+   "rules": "B"
+  },
+  {
+   "checker": 11,
+   "memo": 4,
+   "rules": "C"
+  },
+  {
+   "checker": 12,
+   "memo": 8,
+   "rules": "C"
+  },
+  {
+   "checker": 13,
+   "memo": 3,
+   "rules": "C"
+  },
+  {
+   "checker": 14,
+   "memo": 2,
+   "rules": "C"
+  },
+  {
+   "checker": 15,
+   "memo": 6,
+   "rules": "B"
+  },
+  {
+   "checker": 16,
+   "memo": 1,
+   "rules": "C"
+  }
+ ],
+ "note": "memo text is Ali Assem's (wise-men-flash consistency-check set); not included pending his permission"
+}

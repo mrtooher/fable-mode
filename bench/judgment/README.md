@@ -50,3 +50,7 @@ Per-checker rows and an error-by-checker matrix are in `results.xlsx`.
 - Every checker is a Claude model.
 - The same author wrote the memos, the errors and the keys.
 - Only the checker side is tested, not whether v6.1 makes the author write better memos.
+
+## Follow-up
+
+The November 2026 rounds address the second and third limits: Qwen wrote the memos, held the keys and did the grading, and Ali Assem's own judged memos were added. See [`qwen-rounds/`](qwen-rounds/README.md).
