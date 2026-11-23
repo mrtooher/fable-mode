@@ -1,11 +1,27 @@
 ---
-name: fable-mode
+name: "fable-mode"
 description: "Enforces staged execution discipline on large tasks: a written stage plan, parallel delegation where the runtime supports it, a failable verification check at each stage, and a skeptical self-review before delivery. Trigger when the user explicitly asks OR when the task objectively spans multiple files, sources, or sessions. Do NOT trigger on ordinary multi-step requests that a direct attempt handles fine (autonomous triggering only; explicit invocation always runs)."
 ---
 
 # Fable Mode
 
-Family version: v6.1 (2026-10-24): adds the error-first judgment check to step 3.
+Family version: v6.6 (2026-11-22): never spawn Haiku as a worker, verifier or checker.
+Bench: about 6 of 32 Haiku checkers made tool calls their Read-only brief forbade
+(scheduling, device info, notes); 0 of 8 Sonnet checkers did. On self-contradictions
+every Haiku checker missed, Sonnet caught 9 of 12. Sonnet is the floor for spawned agents.
+v6.5 (2026-11-22): in the error-first judgment check, a claim the spec
+does not cover is UNVERIFIABLE, not an error, unless it contradicts the spec or the
+artifact's own facts (Qwen-graded bench: v6.5 checkers kept unsupported claims off the
+error list 4 of 4 times vs 1 of 4 for v6.4, with no loss of real catches).
+v6.4 (2026-11-10): adds the above-Opus main-thread rule (never route
+work to a paid Fable-tier model), the irreversible-choice stop in step 0, a
+current-state lookup rule in Research, and a tell-the-user-early rule for long runs.
+v6.3 (2026-11-04): Games domain matches fable-checks-games v1.3 (Lune
+tests and type check first, lint optional), allows Claude-driven playtests, and adds the
+live-build-matches-repo check.
+v6.2 (2026-11-04) added step 0 (lock decisions), the stage-size rule,
+reproduce-before-fix for bugs, project landmines, and the Games domain.
+v6.1 (2026-10-24) added the error-first judgment check to step 3.
 
 This skill encodes execution discipline for complex work: decompose before acting,
 delegate where the runtime allows, verify with checks that can fail, self-critique
@@ -59,7 +75,9 @@ Haiku → Sonnet → Opus → back to the user. Apply the loop at the right inte
 - **Frontier-tier (Opus).** Plans, verifies, and self-corrects natively. Do NOT narrate
   the loop or write a formal stage map for tasks the model would handle cleanly anyway —
   that is ceremony. Apply only: (a) the failable-check standard from step 3 when
-  producing artifacts, and (b) everything in the execution-guardrails skill. Write a
+  producing artifacts, (b) everything in the execution-guardrails skill, and (c) step 0
+  whenever the request leaves open choices, because step 0 fixes missing information,
+  not missing ability. Write a
   full stage map only for genuinely multi-session or many-file work. Opus's
   characteristic gaps: self-review that trusts its own introspection, and scope growth
   mid-run — hold the external-artifact standard and the replan budget even when the plan
@@ -73,12 +91,45 @@ Haiku → Sonnet → Opus → back to the user. Apply the loop at the right inte
   Haiku. Escalate to Sonnet or Opus rather than looping when the task needs synthesis
   the checks can't substitute for.
 
+- **Above Opus (a Fable- or Mythos-tier model on the main thread).** This happens only
+  while such a model is included in the user's plan. Use the frontier-tier calibration
+  above. Opus stays the top of the ladder for everything this skill spawns or
+  recommends: never pass `model: "fable"` (or any tier above Opus) to a worker,
+  verifier or checker, and never recommend escalating to one. Those are paid tiers the
+  user has chosen not to buy.
+
 If the model cannot tell which tier it is, assume Sonnet-tier and run the full loop.
 
 ## Core Loop
 
 The loop is constant across domains. Only the verification artifact in step 3 changes by
 domain (see Domain-specific patterns).
+
+**0. Lock decisions (before the stage map)**
+Some requests leave open choices that change what gets built: 2D or 3D, which level, how
+a mechanic should feel, what counts as done. A wrong guess at stage 2 costs the whole
+run, and the replan budget only catches it after two replans. Before writing the map:
+
+- List the open choices that would change the build, at most five. A choice the request,
+  the project files, the work log or LANDMINES.md already settles is not open. Don't
+  re-ask it.
+- If the list is empty, write `Decisions: none open` and go to step 1.
+- Otherwise ask the user once, with all choices together (AskUserQuestion when the
+  runtime has it) and a recommended option first. Wait for the answers.
+- If the user can't answer (scheduled or unattended run) or says "your call", pick the
+  most reasonable option for each and mark it `assumed`.
+- Exception: a choice that can't be undone (deleting, sending, publishing, paying,
+  overwriting the only copy) and could reasonably go either way is never assumed. Do
+  the preparatory work, set out the choice with a recommended option, and stop there
+  until the user answers.
+- Write the results at the top of the stage map, one line each:
+  `Decision: <choice> → <answer> (user | assumed)`.
+
+A later stage that contradicts a locked decision is a step-3 FAIL unless the user
+changed the decision. Failable check: every open choice ends as a Decision line marked
+`user` or `assumed`. A map with an unresolved open choice above it is not ready.
+
+Adapted from the Discuss step in GSD Core (MIT license): github.com/open-gsd/gsd-core
 
 **1. Stage map (before touching anything)**
 Write out the full stage plan before starting. Number the stages. Include a brief
@@ -88,6 +139,11 @@ planned. The map is a living document, not a contract.
 
 Each stage should produce one verifiable artifact. If a stage produces nothing checkable,
 merge it with the next.
+
+**Stage size.** Each stage must fit one fresh session. A worker given only its brief, the
+files the brief names and the Decision lines should be able to finish it without reading
+the rest of the run. If a brief needs more than that, split the stage. Splitting a stage
+does not count as a replan.
 
 **Replan budget.** A living document is not an excuse to churn. Allow at most two full
 replans per run. If a third structural replan seems necessary, stop — the task is
@@ -120,10 +176,12 @@ label that part in the delivery.
 
 **Tier routing.** When the Agent tool exposes a `model` parameter, match the worker
 tier to the stage's difficulty, not to habit: Opus for stage work needing strong
-reasoning short of peak, Sonnet for ordinary stage reasoning, Haiku for bulk mechanical
-work, the orchestrating model itself only for synthesis no cheaper tier can verifiably
-do. Routing down-tier cuts cost as well as time — top-tier tokens should buy judgment,
-not file-shuffling.
+reasoning short of peak, Sonnet for ordinary stage reasoning and bulk mechanical work,
+the orchestrating model itself only for synthesis no cheaper tier can verifiably do.
+Never spawn Haiku: it ignores tool limits in its brief and misses cross-section
+contradictions (see v6.6). Routing down-tier cuts cost as well as time — top-tier tokens should buy judgment,
+not file-shuffling. Never route to a tier above Opus, even when the Agent tool offers
+one (see Calibrate to the model running it).
 
 Good delegation: "research X while I do Y", "process these 3 files", "verify this
 independently". Bad delegation: splitting a single coherent thought just to use
@@ -160,6 +218,10 @@ check below. It turns part of the judgment into a check that can fail.
    - advice or a conclusion that contradicts a fact the spec or the user stated
    - a step in the reasoning that does not follow
    Omissions do not count here. Coverage is checked against the spec separately.
+   A claim the spec does not cover is not an error by itself: list it as UNVERIFIABLE,
+   apart from the error list. It becomes an error only if it contradicts the spec, the
+   user, or the artifact's own facts. If the recommendation rests on it, log it as an
+   open item.
 2. **The verdict is capped by the list.** A material error, meaning one that would change
    what the reader does or believes, is a FAIL: fix it and re-run the check. A minor
    error gets fixed or logged as an open item. A stage cannot be called clean while
@@ -193,8 +255,7 @@ after the check passes.
 For high-stakes deliverables, where the runtime supports subagents and spawning is
 authorized, spawn a fresh verifier agent briefed only with the spec and the artifact —
 not your reasoning — and have it run the checks cold. Fresh eyes cannot inherit your
-blind spots. A Haiku or Sonnet verifier is usually enough; the checks are mechanical by
-design. For a judgment-call deliverable, use Sonnet and brief it with step 3's
+blind spots. A Sonnet verifier is enough; never spawn Haiku for this. For a judgment-call deliverable, use Sonnet and brief it with step 3's
 error-first check. Wait for its verdict before step 5, and emit `FINAL-COLD-CHECK: yes`
 only if it returned and checked the version you deliver.
 
@@ -204,7 +265,7 @@ execution-guardrails skill and are mandatory.
 **5. Mandatory delivery gate: double-check**
 After step 4 and before presenting anything to the user, invoke the **double-check**
 skill on the finished deliverable. It runs a panel of fresh checker agents
-(Haiku/Sonnet, Opus on disagreement) against the final artifact — claims, requirements,
+(Sonnet, Opus on disagreement) against the final artifact — claims, requirements,
 and the synthesis seam — fixes any FAIL, and attaches a verification summary. Without
 the Agent tool, or without spawn authorization, it runs its self-check mode and says so.
 Run it once, on the main thread — never inside a worker. This gate is not optional: the
@@ -240,11 +301,23 @@ named artifact is a step-3 violation.
 - Failable check: named test command runs and passes; at least one error path exercised
   and its output shown, not just the happy path. A test suite that was never run does
   not count as passing.
+- **Bugs: reproduce before you fix.** For a reported bug, the first stage builds a way
+  to make the bug happen on demand: a failing test, a script, or numbered repro steps
+  the user runs. It runs that repro once and shows the failure. No cause is guessed and
+  no fix is written before then. Failable check: the repro and its failing output are
+  shown before the fix, and the same repro passes after it. Recipe: fable-checks-games →
+  "Reproduce first". If no repro can be built, stop, say what was tried, and ask the
+  user for what would make one (a log, exact steps, a saved file). Never fix blind.
 
 ### Research / knowledge work
 - Gather sources before synthesizing. Do not write as you search.
 - For each claim that matters: what's the evidence? what would falsify it?
 - Distinguish confirmed facts from inferences; flag the latter explicitly.
+- Anything that describes the world as it is now (who holds a role, a price, a
+  version, whether a rule is still in force, what a named product does today) is
+  looked up in this run before it is stated, however familiar it feels. Training
+  memory is a dated snapshot. With no lookup tool, state it with its date and label
+  it unverified.
 - Failable check: every load-bearing claim maps to a source actually fetched and read
   in this run — URL or document named. A claim resting on training memory alone must be
   labeled as such. Absence of a web result is never itself a finding (see
@@ -268,12 +341,47 @@ named artifact is a step-3 violation.
   rows match the report; formats (currency, headers) spot-checked on the rendered file,
   not the generating code.
 
+### Games (Unity, Roblox)
+- The project may be open in the user's editor while you work. Before any
+  command-line check, find out whether it is. Unity will not run a second instance on
+  a project that is already open. Ask before closing anything; never close the editor
+  yourself.
+- Failable check: the engine's own compile or test run, taken from fable-checks-games
+  (Unity batchmode tests or compile check; Roblox Lune tests, offline map checks and the
+  luau-lsp type check, plus Open Cloud tests where the repo has them set up). A Roblox
+  lint run is optional and counts as a style check only.
+- Where a change can only be judged by playing (feel, camera, difficulty, multiplayer),
+  the check is a playtest script: numbered steps, each with what should be seen. When
+  the user plays, log the user's report as the result. When Claude drives the playtest
+  itself (for example Studio through computer use), each step's evidence is a
+  screenshot or log line captured in this run, logged as a Claude-driven step. Feel and
+  difficulty stay the user's call even then. A playtest nobody ran is UNVERIFIABLE, not
+  PASS.
+- When code reaches a live place or build by hand (pasted or installed in the editor,
+  not synced by Rojo or the engine), the failable check is that every installed script
+  matches its repo file, and for a publish, the engine's publish confirmation line.
+  Recipe: fable-checks-games → "Roblox: live place matches repo".
+- Scene, prefab and place files (`.unity`, `.prefab`, `.rbxl`, `.rbxlx`) change only if
+  the stage map says they will. Check with `git status --porcelain`.
+
 ### Long-running / multi-session tasks
 - Maintain a work log: decisions made, why, what was tried and failed.
 - At the start of any continuation, re-read the work log before doing anything.
 - Define done criteria upfront so you know when to stop.
+- Tell the user as soon as the direction changes or a limit changes what they will
+  get. Don't hold it for the final report.
 - Failable check: done criteria are written and testable, not vibes; each continuation
   begins with a line confirming the log was re-read and naming any decision it changed.
+- **Project landmines.** A project may keep a `LANDMINES.md` in the repo root or the
+  project's files: problems that have come back before, each with the check that
+  catches it (format in fable-checks-games). At the start of every run on that project,
+  read it and list its entries in the stage map. In the final stage's step 3, re-run
+  every entry's check against the finished work. A landmine FAIL blocks delivery like
+  any other FAIL. When a run fixes a problem that has happened before, or the user says
+  "don't let this happen again", propose a new entry and add it only with the user's OK.
+  If the project has no LANDMINES.md, skip this. Don't create one unasked.
+  Failable check: each entry's check ran against the delivered version, with command
+  and output shown.
 
 ---
 

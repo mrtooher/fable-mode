@@ -32,7 +32,7 @@ Every round 5 and 6 brief said "Your only allowed tool is Read." Haiku checkers 
 - **v6.6:** Sonnet is the floor for spawned agents, and Haiku is removed from worker, verifier and checker roles (rounds 5–6).
 - **Not adopted:** the explicit self-contradiction rule (round 6).
 
-v6.5 and v6.6 are saved in the author's own skills. The SKILL.md files in this repo have not been synced to them yet.
+The SKILL.md files in this repo are synced to v6.6.
 
 ## Limits
 

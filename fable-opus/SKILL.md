@@ -1,11 +1,13 @@
 ---
-name: fable-opus
+name: "fable-opus"
 description: "Run fable-mode execution discipline on Claude Opus — the top of the escalation ladder. Trigger when the user explicitly asks for thorough/systematic/\"deep work\" handling on Opus (\"fable on opus\", \"stage this on opus\", \"deep work mode, opus\"). When a task exceeds Opus's ceiling, report that to the user rather than escalating further."
 ---
 
-# Fable Mode — Opus (v6, main-thread orchestration)
+# Fable Mode — Opus (v6.4, main-thread orchestration)
 
-Family version: v6 (2026-10-10).
+Family version: v6.6 (2026-11-22): Sonnet is the floor for spawned workers; never spawn
+Haiku (bench: about 6 of 32 Haiku checkers made tool calls their Read-only brief forbade,
+0 of 8 Sonnet did). v6.4 (2026-11-10) and v6 (2026-10-10) were the previous versions.
 
 v4 removed the named-agent routing from v3. That design depended on custom agent
 definitions (`fable-orchestrator`, `fable-worker-sonnet`, `fable-worker-haiku`,
@@ -17,6 +19,12 @@ fallback is now the only path, stated directly.
 v5 change: this skill is now the top of the ladder. The Fable 5.1 runner was
 removed from the skill set (its own benchmark measured zero correctness delta at
 that tier), so escalation past Opus goes to the user, not to another runner.
+
+v6.4 change (2026-11-10): fable-mode step 0 (lock decisions) now runs on the main
+thread before any branch, and the worker brief carries the Decision lines and the
+LANDMINES.md entries. Opus remains the top of the ladder even where the Agent tool
+offers a Fable-tier model: that is a paid tier the user has chosen not to buy, so
+never spawn it and never recommend it.
 
 v6 change (2026-10-10, cloud review): v5 told a spawned Opus worker to spawn its
 own Sonnet/Haiku workers, but in the cloud runtime general-purpose subagents had
@@ -50,7 +58,9 @@ as fable-mode — when the user reports usage at their threshold, check in first
 
 ## How to run it
 
-1. **The main thread orchestrates.** Subagents may have no Agent tool of their
+1. **The main thread orchestrates.** Before any branch below, run fable-mode step 0
+   (lock decisions) on this thread, and read the project's `LANDMINES.md` if it has
+   one. Subagents may have no Agent tool of their
    own, so every spawn starts here. Without spawn authorization, follow the
    Invocation gate's inline path instead. Otherwise take the first branch that
    fits:
@@ -58,7 +68,7 @@ as fable-mode — when the user reports usage at their threshold, check in first
      steps 1–3, and step 4 without its fresh-verifier paragraph (step 4 below
      handles the verifier), on this thread at frontier-tier calibration. With the
      Agent tool, spawn stage workers directly from here: `model: "sonnet"` for
-     ordinary stage reasoning, `model: "haiku"` for bulk mechanical work;
+     ordinary stage reasoning and bulk mechanical work (never `model: "haiku"`);
      without it, run every stage here. Opus tokens buy judgment and synthesis, not
      file-shuffling. Respect any user-set worker cap. Then go to step 3.
    - **Main thread on any other model, and the Agent tool offers `"opus"`** →
@@ -71,6 +81,7 @@ as fable-mode — when the user reports usage at their threshold, check in first
 2. Brief the Opus worker with:
    - the user's task, verbatim
    - the output directory
+   - the `Decision:` lines from step 0, and the LANDMINES.md entries (or "none")
    - relevant session context
    - any user-set limits (warning threshold, deadline)
    - from the **fable-mode** skill (installed alongside this one), copied
@@ -78,6 +89,12 @@ as fable-mode — when the user reports usage at their threshold, check in first
      paragraph, the domain patterns, and the operational rules. Do NOT paste
      step 2 (delegation) or step 5 (the double-check gate).
    - the three execution-guardrails rules, inlined verbatim (below)
+   - this instruction: "The open choices are already locked. Copy the Decision
+     lines to the top of your stage map. A stage that contradicts one is a step-3
+     FAIL. If you hit a new open choice that would change the build, stop and
+     return it to the main thread; do not guess. If the brief lists LANDMINES.md
+     entries, add one line per entry under your final stage and run each entry's
+     check against the finished work."
    - this instruction: "Run every stage yourself and spawn nothing — the main
      thread handles verifiers and the delivery gate. If a third replan seems
      needed, stop and return the ambiguity to the main thread; do not ask the
@@ -144,7 +161,7 @@ shorter than a skill load and works either way.
 
 Delegation is still requested in prose, not enforced structurally. The
 orchestrating thread has Write and Edit, so nothing stops it doing stage work
-inline on Opus instead of spawning Sonnet/Haiku workers. Make that visible rather
+inline on Opus instead of spawning Sonnet workers. Make that visible rather
 than silent: the stage map names, per stage, which tier produced its artifact.
 v3 tried to enforce delegation by removing Write from a named orchestrator agent;
 that needs custom agent definitions, which skill-only surfaces cannot load.
