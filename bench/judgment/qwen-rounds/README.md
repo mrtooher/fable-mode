@@ -40,4 +40,4 @@ The SKILL.md files in this repo are synced to v6.6.
 - Qwen's grading was inconsistent. It ruled not-in-SPEC flags FALSE in round 2 and REAL in round 3. In round 4 it credited catches that were not in the reports, and I corrected those by hand (a self-check).
 - In round 4, Qwen saw the checker reports before it judged Ali's key, so its list of contradictions the key missed is not independent.
 - All checkers were Claude models. Only the grading came from outside.
-- Rounds 4–6 memo text and checker reports are not included, because the memos are Ali Assem's work (wise-men-flash, MIT) and permission to republish them is pending. The scores and assignments are included.
+- Rounds 4–6 use Ali Assem's wise-men-flash consistency-check memos and his judges' files. They are in `round4/ali-consistency-check/`, copied unchanged from his repo (MIT, with his permission; license copied alongside). The 8 single-memo files checkers read are in `round4/memo1.md`–`memo8.md`. The full checker reports for round 4 are included. Rounds 5–6 kept only per-checker scores, so their full reports are not available.

@@ -1,0 +1,4 @@
+R502: A=new B=old
+R504: A=new B=old
+R506: A=new B=old
+R508: A=old B=new
